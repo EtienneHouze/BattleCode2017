@@ -15,6 +15,7 @@ public abstract class UnitController {
     // GENERAL VARIABLES
     RobotController rc;
     BehaviourTree tree;
+    public int unitTeamId;
 
     // ARCHON
 
