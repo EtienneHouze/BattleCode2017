@@ -3,6 +3,8 @@ package TestBot0;
 import battlecode.common.*;
 
 import java.awt.*;
+import java.time.temporal.Temporal;
+import java.util.Map;
 
 public class Functions {
 
@@ -15,6 +17,8 @@ public class Functions {
         RUNNING
     }
 
+
+    // Filler functions, used for tests=============================================
     public static ReturnType helloWorld(RobotController rc){
         System.out.println("Hello World");
         return ReturnType.SUCCESS;
@@ -39,19 +43,7 @@ public class Functions {
         return ReturnType.FAIL;
     }
 
-    public static ReturnType buildGardeners(RobotController rc){
-        Direction dir = randomDirection();
-        if (rc.getRobotCount() < 100 && rc.canBuildRobot(RobotType.GARDENER,dir)){
-            try{
-                rc.buildRobot(RobotType.GARDENER,dir);
-                return ReturnType.SUCCESS;
-            }
-            catch (GameActionException e){
-                return ReturnType.FAIL;
-            }
-        }
-        return ReturnType.FAIL;
-    }
+
 
     public static ReturnType buildLumberjack(RobotController rc){
         Direction dir = randomDirection();
@@ -67,13 +59,66 @@ public class Functions {
         return ReturnType.FAIL;
     }
 
+
+    // Archon stuff ==================================================================
+    public static ReturnType evaluateMapSize(RobotController rc, UnitController uc){
+        /**
+         * If the map size has not yet been evaluated, estimates it.
+         * Else, does nothing.
+         */
+        if (uc.estimatedMapSize == 0){
+            MapLocation[] aTeamArchons = rc.getInitialArchonLocations(Team.A);
+            MapLocation[] bTeamArchons = rc.getInitialArchonLocations(Team.B);
+            uc.estimatedMapSize = aTeamArchons[0].distanceTo(bTeamArchons[0]);
+        }
+        return ReturnType.SUCCESS;
+    }
+
+    public static ReturnType readInfo(RobotController rc, UnitController uc){
+        return ReturnType.SUCCESS;
+    }
+
+
+    public static ReturnType buildGardeners(RobotController rc, UnitController uc){
+        Direction dir = randomDirection();
+        if ((uc.gardenersCount < 20 && uc.estimatedMapSize > UnitController.bigMap)
+                || (uc.gardenersCount < 10 && uc.estimatedMapSize > UnitController.smallMap)
+                || uc.gardenersCount < 5){
+            try{
+                if(rc.canBuildRobot(RobotType.GARDENER,dir)){
+                    rc.buildRobot(RobotType.GARDENER,dir);
+                    uc.gardenersCount ++;
+                    return ReturnType.SUCCESS;
+                }
+            }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
+        return ReturnType.FAIL;
+    }
+
+    public static ReturnType buyVP(RobotController rc, UnitController uc){
+        if (rc.getTeamBullets() > 150){
+            try{
+                rc.donate(100);
+                return ReturnType.SUCCESS;
+            }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
+        return ReturnType.FAIL;
+    }
+
+    // Helpers========================================================================
     static Direction randomDirection() {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
     }
 
 
 
-    public static ReturnType run(String funcName, RobotController rc){
+    public static ReturnType run(String funcName, RobotController rc,UnitController uc){
         /**
          *
          * Runs all function depending on their name.
@@ -88,11 +133,23 @@ public class Functions {
             }
 
             case "build_gardeners":{
-                return buildGardeners(rc);
+                return buildGardeners(rc,uc);
             }
 
             case "build_lumberjacks":{
                 return buildLumberjack(rc);
+            }
+
+            case "mapSize":{
+                return evaluateMapSize(rc, uc);
+            }
+
+            case "readInfo":{
+                return readInfo(rc,uc);
+            }
+
+            case "buy_points":{
+                return buyVP(rc,uc);
             }
 
             default:{

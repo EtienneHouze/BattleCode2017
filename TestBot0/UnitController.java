@@ -12,22 +12,44 @@ public abstract class UnitController {
      * Every variable of this class will not be used by all units, some are type-specific, so be careful !
      */
 
-    // GENERAL VARIABLES
+    // GENERAL VARIABLES==========================================================================================
     RobotController rc;
     BehaviourTree tree;
     public int unitTeamId;
 
-    // ARCHON
+    public final static float smallMap = 150; // Under that, map is considered small.
+    public final static float bigMap = 400; // Above that, map is considered big.
 
-    // GARDENER
+    // ARCHON=====================================================================================================
 
-    // SCOUT
+        // The following keep track of how many units of each type we have.
+    int unitsBuilt;
+    int gardenersCount;
+    int soldiersCoutn;
+    int lumberjacksCount;
+    int scoutsCount;
+    int tanksCount;
 
-    // SOLDIER
+        // Instruction sent to gardeners to ask them to build specific units.
+        // The following encoding is used:
+        //  -1 : nothing
+        //  1 : lumberjacks
+        //  2 : scouts
+        //  3: soldiers
+        //  4: tanks
+    int whatToBuild;
 
-    // LUMBERJACK
+    float estimatedMapSize; // An estimation of the map size.
 
-    // TANK
+    // GARDENER====================================================================================================
+
+    // SCOUT=======================================================================================================
+
+    // SOLDIER=====================================================================================================
+
+    // LUMBERJACK==================================================================================================
+
+    // TANK========================================================================================================
 
 
     public void run(){

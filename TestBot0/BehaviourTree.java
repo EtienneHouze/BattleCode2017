@@ -69,7 +69,7 @@ public class BehaviourTree {
 
             switch (type){
                 case LEAF:{
-                    return Functions.run(functionName,rc);
+                    return Functions.run(functionName,rc,uc);
                 }
                 case QUESTION:{
                     for (Node n : children){

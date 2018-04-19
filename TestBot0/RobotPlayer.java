@@ -9,11 +9,16 @@ public class RobotPlayer {
             "1 leaf move\n" +
             "2 leaf hello";
 
-    static String archonText = "0 question 1 2\n" +
-            "1 leaf build_gardeners\n" +
-            "2 leaf move";
+    static String archonText = "0 seq 1 2 7\n" +
+            "7 leaf readInfo\n" +
+            "1 leaf mapSize\n" +
+            "2 question 3 4\n" +
+            "3 leaf build_gardeners\n" +
+            "4 question 5 6\n" +
+            "5 leaf buy_points\n" +
+            "6 leaf hello";
     static String gardenerText = "0 question 1 2\n" +
-            "1 leaf build_lumberjacks\n" +
+            "1 leaf move\n" +
             "2 leaf move";
     static String lumberText = "0 leaf move";
 
