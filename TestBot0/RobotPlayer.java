@@ -15,7 +15,7 @@ public class RobotPlayer {
     static String gardenerText = "0 question 1 2\n" +
             "1 leaf build_lumberjacks\n" +
             "2 leaf move";
-    static String lumberText = "";
+    static String lumberText = "0 leaf move";
 
     static String scoutText = "";
 
