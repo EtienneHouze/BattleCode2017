@@ -1,6 +1,9 @@
 package TestBot0;
 
 import battlecode.common.RobotController;
+import battlecode.common.TreeInfo;
+
+import java.util.ArrayList;
 
 public abstract class UnitController {
     /**
@@ -29,6 +32,7 @@ public abstract class UnitController {
     int lumberjacksCount;
     int scoutsCount;
     int tanksCount;
+    boolean enemyVisible;
 
         // Instruction sent to gardeners to ask them to build specific units.
         // The following encoding is used:
@@ -42,6 +46,9 @@ public abstract class UnitController {
     float estimatedMapSize; // An estimation of the map size.
 
     // GARDENER====================================================================================================
+
+    ArrayList<TreeInfo> treesToMonitor;
+    boolean isInGoodSpot;
 
     // SCOUT=======================================================================================================
 

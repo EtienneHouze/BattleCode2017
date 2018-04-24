@@ -75,9 +75,45 @@ public class Functions {
     }
 
     public static ReturnType readInfo(RobotController rc, UnitController uc){
+        uc.lumberjacksCount = 0;        // In the following lines, reset of the unit counts.
+        uc.tanksCount = 0;
+        uc.soldiersCoutn = 0;
+        uc.gardenersCount = 0;
+        uc.scoutsCount = 0;
+        for (int i = 0; i < 500; i ++){ // We iterate throught every possible unit channel and read what they say.
+            try {
+                int unitType = rc.readBroadcast(5000 + (10*i));
+                switch (unitType){
+                    case 1:{
+                        uc.gardenersCount ++;
+                    }break;
+                    case 2:{
+                        uc.soldiersCoutn ++;
+                    }break;
+                    case 3:{
+                        uc.tanksCount ++;
+                    }break;
+                    case 4:{
+                        uc.tanksCount ++;
+                    }break;
+                    case 5:{
+                        uc.lumberjacksCount ++;
+                    }break;
+                    default:{
+
+                    }break;
+                }
+            }
+            catch(GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
         return ReturnType.SUCCESS;
     }
 
+    public static ReturnType broadcastAll(RobotController rc, UnitController uc){
+        return ReturnType.SUCCESS;
+    }
 
     public static ReturnType buildGardeners(RobotController rc, UnitController uc){
         Direction dir = randomDirection();
@@ -111,10 +147,26 @@ public class Functions {
         return ReturnType.FAIL;
     }
 
+    public static ReturnType whatToBuild(RobotController rc, UnitController uc){
+        TreeInfo[] nearbyTrees = rc.senseNearbyTrees(20,Team.NEUTRAL);
+        if (nearbyTrees.length > 5 && uc.lumberjacksCount < 2){
+            uc.whatToBuild = 1;
+        }
+        if (uc.enemyVisible || uc.soldiersCoutn < 5){
+            uc.whatToBuild = 3;
+            return ReturnType.SUCCESS;
+        }
+        uc.whatToBuild = -1;
+        return ReturnType.SUCCESS;
+    }
+
     // Gardener stuff ==================================================================
 
     
-    public static ReturnType findPlantingSpot(RobotController rc){
+    public static ReturnType findPlantingSpot(RobotController rc, UnitController uc){
+        if (uc.isInGoodSpot){
+            return ReturnType.SUCCESS;
+        }
         boolean tooClose = false;
         for (MapLocation archonLocation : rc.getInitialArchonLocations(rc.getTeam())){
             if (rc.getLocation().distanceTo(archonLocation) < 10){
@@ -132,7 +184,7 @@ public class Functions {
                             if (rc.canMove(randDir)){
                                 rc.move(randDir);
                             }
-                        return ReturnType.SUCCESS;
+                        return ReturnType.RUNNING; // In this case, the agent is still trying to find a good spot
                         }
                     }
                }
@@ -140,7 +192,8 @@ public class Functions {
                     return ReturnType.FAIL;
                 }
             }
-        return ReturnType.FAIL;
+        uc.isInGoodSpot = true;
+        return ReturnType.SUCCESS; // In this case, it is in a good spot
      }
     
     public static ReturnType plantTree(RobotController rc){
@@ -150,6 +203,7 @@ public class Functions {
                 Direction dir = new Direction((float) directions[i]);
                 if (rc.canPlantTree(dir)){
                     rc.plantTree(dir);
+
                     return ReturnType.SUCCESS;
                 }
             }
@@ -160,7 +214,7 @@ public class Functions {
         return ReturnType.FAIL;
      }
     
-    public static ReturnType waterTree(RobotController rc, int[] trees){
+    public static ReturnType waterTree(RobotController rc, UnitController uc){
         try{
             int lowestHealth = 50;
             int lowestID = -1;
@@ -231,11 +285,15 @@ public class Functions {
             }
 
             case "findPlantingSpot":{
-                return findPlantingSpot(rc);
+                return findPlantingSpot(rc,uc);
             }
 
             case "plantTree":{
                 return plantTree(rc);
+            }
+
+            case "waterTree":{
+                return waterTree(rc,uc);
             }
 
            default:{

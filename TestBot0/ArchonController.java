@@ -18,6 +18,8 @@ public class ArchonController extends UnitController{
     }
 
     public void run(){
+        Functions.readInfo(rc,this);
         tree.tickDown(rc,this);
+        Functions.broadcastAll(rc,this);
     }
 }
