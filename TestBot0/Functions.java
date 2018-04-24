@@ -114,11 +114,40 @@ public class Functions {
     // Gardener stuff ==================================================================
 
     
+    public static ReturnType findPlantingSpot(RobotController rc){
+        boolean tooClose = false;
+        for (MapLocation archonLocation : rc.getInitialArchonLocations(rc.getTeam())){
+            if (rc.getLocation().distanceTo(archonLocation) < 10){
+                tooClose = true;
+            }
+        }
+        if (rc.senseNearbyTrees((float) 2.0, rc.getTeam()).length == 0){
+            try{
+                double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
+                for (int i = 1; i < 5; i ++){
+                    Direction dir = new Direction((float) directions[i]);
+                    if ((tooClose || !(rc.canPlantTree(dir)))){
+    //                    rc.move(dir);
+                            Direction randDir = randomDirection();
+                            if (rc.canMove(randDir)){
+                                rc.move(randDir);
+                            }
+                        return ReturnType.SUCCESS;
+                        }
+                    }
+               }
+                catch (GameActionException e){
+                    return ReturnType.FAIL;
+                }
+            }
+        return ReturnType.FAIL;
+     }
+    
     public static ReturnType plantTree(RobotController rc){
         try{
-            double[] directions = new double[]{0, Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4};
+            double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
             for (int i = 1; i < 5; i ++){
-                Direction dir = new Direction((float)directions[i]);
+                Direction dir = new Direction((float) directions[i]);
                 if (rc.canPlantTree(dir)){
                     rc.plantTree(dir);
                     return ReturnType.SUCCESS;
@@ -131,27 +160,28 @@ public class Functions {
         return ReturnType.FAIL;
      }
     
-//    public static ReturnType waterTree(RobotController rc, int[] trees){
-//        try{
-//        int lowestHealth = 50;
-//        int lowestID = -1;
-//        for (int i = 0; i < trees.length; i ++){
-//             if (rc.canWater(trees[i])){
-//                 TreeInfo ti = rc.TreeInfo(trees[i]);
-//                 if (ti.getHealth() < lowestHealth){
-//                     lowestID = trees[i];
-//                 }
-//             }
-//        }
-//        if (lowestID != 1){
-//            rc.water(lowestID);
-//        }
-//        }
-//            catch (GameActionException e){
-//                return ReturnType.FAIL;
-//            }
-//         return ReturnType.FAIL;
-//           }
+    public static ReturnType waterTree(RobotController rc, int[] trees){
+        try{
+            int lowestHealth = 50;
+            int lowestID = -1;
+            TreeInfo[] tis = rc.senseNearbyTrees((float) 2.0);
+            for (TreeInfo ti : tis) {
+                if (rc.canWater(ti.getID())) {
+                    if (ti.getHealth() < lowestHealth) {
+                        lowestID = ti.getID();
+                    }
+                }
+            }
+            if (lowestID != 1){
+                rc.water(lowestID);
+                return ReturnType.SUCCESS;
+            }
+        }
+        catch (GameActionException e){
+            return ReturnType.FAIL;
+        }
+        return ReturnType.FAIL;
+    }
     
 //    public static returnType sendToArchon(RobotController rc){
 //        UnitType type = rc.getType();
@@ -198,6 +228,10 @@ public class Functions {
 
             case "buy_points":{
                 return buyVP(rc,uc);
+            }
+
+            case "findPlantingSpot":{
+                return findPlantingSpot(rc);
             }
 
             case "plantTree":{

@@ -18,7 +18,8 @@ public class RobotPlayer {
             "5 leaf buy_points\n" +
             "6 leaf hello";
     static String gardenerText = "0 question 1 2\n" +
-            "1 leaf plantTree\n";
+            "1 leaf findPlantingSpot\n" +
+            "2 leaf plantTree";
     static String lumberText = "0 leaf move";
 
     static String scoutText = "";
