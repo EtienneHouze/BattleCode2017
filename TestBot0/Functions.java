@@ -111,6 +111,54 @@ public class Functions {
         return ReturnType.FAIL;
     }
 
+    // Gardener stuff ==================================================================
+
+    
+    public static ReturnType plantTree(RobotController rc){
+        try{
+            double[] directions = new double[]{0, Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4};
+            for (int i = 1; i < 5; i ++){
+                Direction dir = new Direction((float)directions[i]);
+                if (rc.canPlantTree(dir)){
+                    rc.plantTree(dir);
+                    return ReturnType.SUCCESS;
+                }
+            }
+           }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        return ReturnType.FAIL;
+     }
+    
+//    public static ReturnType waterTree(RobotController rc, int[] trees){
+//        try{
+//        int lowestHealth = 50;
+//        int lowestID = -1;
+//        for (int i = 0; i < trees.length; i ++){
+//             if (rc.canWater(trees[i])){
+//                 TreeInfo ti = rc.TreeInfo(trees[i]);
+//                 if (ti.getHealth() < lowestHealth){
+//                     lowestID = trees[i];
+//                 }
+//             }
+//        }
+//        if (lowestID != 1){
+//            rc.water(lowestID);
+//        }
+//        }
+//            catch (GameActionException e){
+//                return ReturnType.FAIL;
+//            }
+//         return ReturnType.FAIL;
+//           }
+    
+//    public static returnType sendToArchon(RobotController rc){
+//        UnitType type = rc.getType();
+//        return 0;
+//    }
+
+
     // Helpers========================================================================
     static Direction randomDirection() {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
@@ -118,7 +166,7 @@ public class Functions {
 
 
 
-    public static ReturnType run(String funcName, RobotController rc,UnitController uc){
+    public static ReturnType run(String funcName, RobotController rc, UnitController uc){
         /**
          *
          * Runs all function depending on their name.
@@ -152,7 +200,11 @@ public class Functions {
                 return buyVP(rc,uc);
             }
 
-            default:{
+            case "plantTree":{
+                return plantTree(rc);
+            }
+
+           default:{
                 return ReturnType.FAIL;
             }
         }
