@@ -1,6 +1,7 @@
 package TestBot0;
 
 import battlecode.common.*;
+import scala.Unit;
 
 import java.awt.*;
 import java.time.temporal.Temporal;
@@ -24,10 +25,6 @@ public class Functions {
         return ReturnType.SUCCESS;
     }
 
-    public static ReturnType tryToDoSomeStuff(RobotController rc){
-        Direction dir = randomDirection();
-        return ReturnType.SUCCESS;
-    }
 
     public static  ReturnType move(RobotController rc){
         Direction dir = randomDirection();
@@ -46,17 +43,21 @@ public class Functions {
 
 
     public static ReturnType buildLumberjack(RobotController rc){
-        Direction dir = randomDirection();
-        if (rc.canBuildRobot(RobotType.LUMBERJACK,dir)){
-            try{
-                rc.buildRobot(RobotType.LUMBERJACK,dir);
-                return  ReturnType.SUCCESS;
-            }
-            catch (GameActionException e){
-                return ReturnType.FAIL;
+        double[] dirs = {0,Math.PI/3,2*Math.PI/3,Math.PI,4*Math.PI/3,5*Math.PI/3};
+        for (double d:dirs){
+            Direction dir = new Direction((float)d);
+            if (rc.canBuildRobot(RobotType.LUMBERJACK,dir)){
+                try{
+                    rc.buildRobot(RobotType.LUMBERJACK,dir);
+                    return  ReturnType.SUCCESS;
+                }
+                catch (GameActionException e){
+                    return ReturnType.FAIL;
+                }
             }
         }
-        return ReturnType.FAIL;
+
+        return ReturnType.SUCCESS;
     }
 
 
@@ -112,6 +113,12 @@ public class Functions {
     }
 
     public static ReturnType broadcastAll(RobotController rc, UnitController uc){
+        try{
+            rc.broadcastInt(0,uc.whatToBuild);
+        }
+        catch(GameActionException e){
+
+        }
         return ReturnType.SUCCESS;
     }
 
@@ -150,13 +157,13 @@ public class Functions {
     public static ReturnType whatToBuild(RobotController rc, UnitController uc){
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees(20,Team.NEUTRAL);
         if (nearbyTrees.length > 5 && uc.lumberjacksCount < 2){
-            uc.whatToBuild = 1;
+            uc.whatToBuild = 5;     // If there are more than 5 trees around and less than 2 lumberjacks, build lumberjackz
         }
-        if (uc.enemyVisible || uc.soldiersCoutn < 5){
-            uc.whatToBuild = 3;
+        if (uc.enemyVisible || (uc.soldiersCoutn < 5 && rc.getRoundNum() < 100)){
+            uc.whatToBuild = 2;     // If we have less than 5 soldiers or we see enemies, build soldiers.
             return ReturnType.SUCCESS;
         }
-        uc.whatToBuild = -1;
+        uc.whatToBuild = -1;        // No building instructions here
         return ReturnType.SUCCESS;
     }
 
@@ -236,11 +243,30 @@ public class Functions {
         }
         return ReturnType.FAIL;
     }
-    
-//    public static returnType sendToArchon(RobotController rc){
-//        UnitType type = rc.getType();
-//        return 0;
-//    }
+
+    public static ReturnType sendToArchon(RobotController rc,UnitController uc){
+        switch (rc.getType()){
+            case GARDENER:{
+                int channel = 5000 + (uc.unitTeamId*10);
+                try{
+                    rc.broadcastInt(channel,1);     // broadcasting unit type
+                    rc.broadcastFloat(channel+1,rc.getLocation().x);
+                    rc.broadcastFloat(channel+2,rc.getLocation().y);
+                    Team otherTeam;
+                    if (rc.getTeam() == Team.A)
+                        otherTeam = Team.B;
+                    else
+                        otherTeam = Team.A;
+                    RobotInfo[] enemies = rc.senseNearbyRobots(20f,otherTeam);
+                    rc.broadcastInt(channel+3,enemies.length);
+                }
+                catch (GameActionException e){
+
+                }
+            }break;
+        }
+        return ReturnType.SUCCESS;
+    }
 
 
     // Helpers========================================================================
@@ -294,6 +320,10 @@ public class Functions {
 
             case "waterTree":{
                 return waterTree(rc,uc);
+            }
+
+            case "whatToBuild":{
+                return whatToBuild(rc,uc);
             }
 
            default:{

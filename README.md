@@ -6,7 +6,7 @@
 ## Encoding for the broadcast from the unit to the archon
 | 0| 1| 2| 3| 4| 5|
 |---------------------|--------------------------------|----------------------------|-------------------------|-------------------------|-----|
-|Unit type | X-coordinate | Y-coordinate | | |...  |
+|Unit type | X-coordinate | Y-coordinate | Number of enemies within sensor radius | |...  |
 
 ## Unit types
 | 0| 1| 2| 3| 4| 5|
