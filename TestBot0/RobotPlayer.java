@@ -30,7 +30,9 @@ public class RobotPlayer {
 
     static String scoutText = "0 leaf move";
 
-    static String soldierText = "0 leaf move";
+    static String soldierText = "0 seq 1 2\n" +
+            "1 leaf shoot\n" +
+            "2 leaf move";
 
     static String tankText = "0 leaf move";
 

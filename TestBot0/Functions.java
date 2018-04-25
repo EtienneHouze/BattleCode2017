@@ -451,6 +451,31 @@ public class Functions {
         return ReturnType.RUNNING;
     }
 
+    // Soldier stuff ==================================================================
+    
+    public static ReturnType shoot(RobotController rc){
+        try{
+        RobotInfo[] enemyrobots = rc.senseNearbyRobots(100, rc.getTeam().opponent());
+        if (enemyrobots.length >= 5){
+                rc.firePentadShot(rc.getLocation().directionTo(enemyrobots[enemyrobots.length / 2].getLocation()));
+                return ReturnType.SUCCESS;
+            }
+            
+        else if (enemyrobots.length >= 2){
+                rc.fireTriadShot(rc.getLocation().directionTo(enemyrobots[enemyrobots.length / 2].getLocation()));
+                return ReturnType.SUCCESS;
+            } 
+            
+        else if (enemyrobots.length == 1){
+                rc.fireSingleShot(rc.getLocation().directionTo(enemyrobots[0].getLocation()));
+                return ReturnType.SUCCESS;
+            }
+        }catch (GameActionException e){
+                return ReturnType.FAIL;                
+                }
+        return ReturnType.FAIL;
+    }
+
     // Helpers========================================================================
     static Direction randomDirection() {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
@@ -522,6 +547,10 @@ public class Functions {
 
             case "moveBounded":{
                 return moveBounded(rc,uc);
+            }
+
+            case "shoot":{
+                return shoot(rc);
             }
 
            default:{
