@@ -15,7 +15,7 @@ public class RobotPlayer {
             "3 leaf build_gardeners\n" +
             "4 question 5 6\n" +
             "5 leaf buy_points\n" +
-            "6 leaf move";
+            "6 leaf moveBounded";
     static String gardenerText = "0 seq 5 1 2\n" +
             "1 leaf findPlantingSpot\n" +
             "2 question 3 4\n"+
@@ -24,7 +24,7 @@ public class RobotPlayer {
             "5 leaf buildUnit";
     static String lumberText = "0 question 1 2\n" +
             "1 seq 3 4\n" +
-            "2 leaf move\n" +
+            "2 leaf moveBounded\n" +
             "3 leaf senseTrees\n" +
             "4 leaf chop";
 

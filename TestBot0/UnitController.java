@@ -20,8 +20,8 @@ public abstract class UnitController {
     BehaviourTree tree;
     public int unitTeamId;
 
-    public final static float smallMap = 150; // Under that, map is considered small.
-    public final static float bigMap = 400; // Above that, map is considered big.
+    public final static float smallMap = 50; // Under that, map is considered small.
+    public final static float bigMap = 100; // Above that, map is considered big.
 
     // ARCHON=====================================================================================================
 
@@ -37,10 +37,10 @@ public abstract class UnitController {
         // Instruction sent to gardeners to ask them to build specific units.
         // The following encoding is used:
         //  -1 : nothing
-        //  1 : lumberjacks
-        //  2 : scouts
-        //  3: soldiers
-        //  4: tanks
+        //  2 : soldiers
+        // 3 : tanks
+        // 4 : scouts
+        // 5 : lumberjacks
     int whatToBuild;
 
     float estimatedMapSize; // An estimation of the map size.

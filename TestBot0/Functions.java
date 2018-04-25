@@ -41,6 +41,30 @@ public class Functions {
         return ReturnType.FAIL;
     }
 
+    public static ReturnType moveBounded(RobotController rc, UnitController uc){
+        if (rc.getLocation().distanceTo(rc.getInitialArchonLocations(rc.getTeam())[0]) > 20){
+            if (rc.canMove(rc.getInitialArchonLocations(rc.getTeam())[0])){
+                try{
+                    rc.move(rc.getInitialArchonLocations(rc.getTeam())[0]);
+                    return ReturnType.SUCCESS;
+                }
+                catch (GameActionException e){
+
+                }
+            }
+        }
+        Direction dir = randomDirection();
+        if (rc.canMove(dir)){
+            try {
+                rc.move(dir);
+                return ReturnType.SUCCESS;
+            }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
+        return ReturnType.FAIL;
+    }
 
 
     public static ReturnType buildLumberjack(RobotController rc){
@@ -148,9 +172,9 @@ public class Functions {
     }
 
     public static ReturnType buyVP(RobotController rc, UnitController uc){
-        if (rc.getTeamBullets() > 150){
+        if (rc.getTeamBullets() > 150 && uc.soldiersCoutn < 10){
             try{
-                rc.donate(100);
+                rc.donate(20);
                 return ReturnType.SUCCESS;
             }
             catch (GameActionException e){
@@ -167,7 +191,7 @@ public class Functions {
             uc.whatToBuild = 5;     // If there are more than 5 trees around and less than 2 lumberjacks, build lumberjackz
         }
         else{
-            if (uc.enemyVisible || (uc.soldiersCoutn < 5 && rc.getRoundNum() < 100)){
+            if (uc.enemyVisible || (uc.soldiersCoutn < 10 && rc.getRoundNum() > 100)){
                 uc.whatToBuild = 2;     // If we have less than 5 soldiers or we see enemies, build soldiers.
                 return ReturnType.SUCCESS;
             }
@@ -187,21 +211,33 @@ public class Functions {
             return ReturnType.SUCCESS;
         }
         boolean tooClose = false;
-        for (MapLocation archonLocation : rc.getInitialArchonLocations(rc.getTeam())){
-            if (rc.getLocation().distanceTo(archonLocation) < 10){
+        /*for (MapLocation archonLocation : rc.getInitialArchonLocations(rc.getTeam())){
+            if (rc.getLocation().distanceTo(archonLocation) < 15){
                 tooClose = true;
             }
+        }*/
+        RobotInfo[] nearby = rc.senseNearbyRobots(6,rc.getTeam());
+        Direction oppositeDir;
+        if (nearby.length > 0){
+            tooClose = true;
+            oppositeDir = nearby[0].getLocation().directionTo(rc.getLocation());
         }
-        if (rc.senseNearbyTrees((float) 2.0, rc.getTeam()).length == 0){
+        else{
+            oppositeDir = randomDirection();
+        }
+            if (rc.senseNearbyTrees((float) 2.0, rc.getTeam()).length == 0){
             try{
                 double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
                 for (int i = 1; i < 5; i ++){
                     Direction dir = new Direction((float) directions[i]);
                     if ((tooClose || !(rc.canPlantTree(dir)))){
-    //                    rc.move(dir);
                             Direction randDir = randomDirection();
-                            if (rc.canMove(randDir)){
-                                rc.move(randDir);
+                            if (rc.canMove(oppositeDir)){
+                                rc.move(oppositeDir);
+                            }
+                            else{
+                                if (rc.canMove(randDir))
+                                    rc.move(randDir);
                             }
                         return ReturnType.RUNNING; // In this case, the agent is still trying to find a good spot
                         }
@@ -218,7 +254,7 @@ public class Functions {
     public static ReturnType plantTree(RobotController rc){
         try{
             double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
-            for (int i = 1; i < 5; i ++){
+            for (int i = 0; i < 5; i ++){
                 Direction dir = new Direction((float) directions[i]);
                 if (rc.canPlantTree(dir)){
                     rc.plantTree(dir);
@@ -257,20 +293,13 @@ public class Functions {
     }
 
     public static ReturnType sendToArchon(RobotController rc,UnitController uc){
+        int channel = 5000 + (uc.unitTeamId*10);
         switch (rc.getType()){
             case GARDENER:{
-                int channel = 5000 + (uc.unitTeamId*10);
+
                 try{
                     rc.broadcastInt(channel,1);     // broadcasting unit type
-                    rc.broadcastFloat(channel+1,rc.getLocation().x);
-                    rc.broadcastFloat(channel+2,rc.getLocation().y);
-                    Team otherTeam;
-                    if (rc.getTeam() == Team.A)
-                        otherTeam = Team.B;
-                    else
-                        otherTeam = Team.A;
-                    RobotInfo[] enemies = rc.senseNearbyRobots(20f,otherTeam);
-                    rc.broadcastInt(channel+3,enemies.length);
+
                 }
                 catch (GameActionException e){
 
@@ -278,22 +307,50 @@ public class Functions {
             }break;
             case LUMBERJACK:{
                 try{
-                    int channel = 5000 + (uc.unitTeamId*10);
-                    rc.broadcastInt(channel,5);
-                    rc.broadcastFloat(channel+1,rc.getLocation().x);
-                    rc.broadcastFloat(channel+2,rc.getLocation().y);
-                    Team otherTeam;
-                    if (rc.getTeam() == Team.A)
-                        otherTeam = Team.B;
-                    else
-                        otherTeam = Team.B;
-                    RobotInfo[] enemies = rc.senseNearbyRobots(20,otherTeam);
-                    rc.broadcastInt(channel+3,enemies.length);
+                    rc.broadcastInt(channel,5);     //Broadcasting type
                 }
                 catch (GameActionException e){
 
                 }
             }break;
+            case SOLDIER:{
+                try{
+                    rc.broadcastInt(channel,2);
+                }
+                catch (GameActionException e){
+
+                }
+            }break;
+            case TANK:{
+                try {
+                    rc.broadcastInt(channel,3);
+                }
+                catch (GameActionException e){
+
+                }
+            }break;
+            case SCOUT:{
+                try{
+                    rc.broadcastInt(channel,4);
+                }
+                catch(GameActionException e){
+
+                }
+            }break;
+        }
+        try{
+            rc.broadcastFloat(channel+1,rc.getLocation().x);
+            rc.broadcastFloat(channel+2,rc.getLocation().y);
+            Team otherTeam;
+            if (rc.getTeam() == Team.A)
+                otherTeam = Team.B;
+            else
+                otherTeam = Team.B;
+            RobotInfo[] enemies = rc.senseNearbyRobots(20,otherTeam);
+            rc.broadcastInt(channel+3,enemies.length);
+        }
+        catch (GameActionException e){
+
         }
         return ReturnType.SUCCESS;
     }
@@ -311,7 +368,7 @@ public class Functions {
                             return ReturnType.SUCCESS;
                         }
                     }
-                }
+                }break;
                 case 3:{
                     for (double d:dirs){
                         Direction dir = new Direction((float)d);
@@ -320,7 +377,7 @@ public class Functions {
                             return ReturnType.SUCCESS;
                         }
                     }
-                }
+                }break;
                 case 4:{
                     for (double d:dirs){
                         Direction dir = new Direction((float)d);
@@ -329,7 +386,7 @@ public class Functions {
                             return ReturnType.SUCCESS;
                         }
                     }
-                }
+                }break;
                 case 5:{
                     for (double d:dirs){
                         Direction dir = new Direction((float)d);
@@ -338,10 +395,10 @@ public class Functions {
                             return ReturnType.SUCCESS;
                         }
                     }
-                }
+                }break;
                 case -1:{
 
-                }
+                }break;
             }
         }
         catch (GameActionException e){
@@ -461,6 +518,10 @@ public class Functions {
 
             case "buildUnit":{
                 return buildUnit(rc,uc);
+            }
+
+            case "moveBounded":{
+                return moveBounded(rc,uc);
             }
 
            default:{
