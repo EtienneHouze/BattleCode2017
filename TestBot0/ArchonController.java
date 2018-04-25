@@ -17,9 +17,11 @@ public class ArchonController extends UnitController{
 
     }
 
+    @Override
     public void run(){
         Functions.readInfo(rc,this);
-        tree.tickDown(rc,this);
+        super.run();
+        Functions.whatToBuild(rc,this);
         Functions.broadcastAll(rc,this);
     }
 }

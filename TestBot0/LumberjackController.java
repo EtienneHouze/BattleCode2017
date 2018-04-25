@@ -22,5 +22,12 @@ public class LumberjackController extends UnitController {
         catch (GameActionException e){
 
         }
+        targetTree = null;
+    }
+
+    @Override
+    public void run(){
+        super.run();
+        Functions.sendToArchon(rc,this);
     }
 }

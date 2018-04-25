@@ -81,12 +81,13 @@ public class BehaviourTree {
                     return Functions.ReturnType.SUCCESS;
                 }
                 case SEQUENTIAL:{
+                    Functions.ReturnType result = Functions.ReturnType.RUNNING;
                     for (Node n : children){
-                        Functions.ReturnType result = n.tick_down(rc,uc);
+                        result = n.tick_down(rc,uc);
                         if (result != Functions.ReturnType.SUCCESS)
                             return result;
                     }
-                    return Functions.ReturnType.FAIL;
+                    return result;
                 }
 
             }

@@ -16,18 +16,23 @@ public class RobotPlayer {
             "4 question 5 6\n" +
             "5 leaf buy_points\n" +
             "6 leaf move";
-    static String gardenerText = "0 seq 1 2\n" +
+    static String gardenerText = "0 seq 5 1 2\n" +
             "1 leaf findPlantingSpot\n" +
             "2 question 3 4\n"+
             "3 leaf plantTree\n" +
-            "4 leaf waterTree";
-    static String lumberText = "0 leaf move";
+            "4 leaf waterTree\n" +
+            "5 leaf buildUnit";
+    static String lumberText = "0 question 1 2\n" +
+            "1 seq 3 4\n" +
+            "2 leaf move\n" +
+            "3 leaf senseTrees\n" +
+            "4 leaf chop";
 
-    static String scoutText = "";
+    static String scoutText = "0 leaf move";
 
-    static String soldierText = "";
+    static String soldierText = "0 leaf move";
 
-    static String tankText = "";
+    static String tankText = "0 leaf move";
 
     static RobotController rc;
 

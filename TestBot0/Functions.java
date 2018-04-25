@@ -2,6 +2,7 @@ package TestBot0;
 
 import battlecode.common.*;
 import scala.Unit;
+import sun.reflect.generics.tree.Tree;
 
 import java.awt.*;
 import java.time.temporal.Temporal;
@@ -124,9 +125,14 @@ public class Functions {
 
     public static ReturnType buildGardeners(RobotController rc, UnitController uc){
         Direction dir = randomDirection();
-        if ((uc.gardenersCount < 20 && uc.estimatedMapSize > UnitController.bigMap)
-                || (uc.gardenersCount < 10 && uc.estimatedMapSize > UnitController.smallMap)
-                || uc.gardenersCount < 5){
+        TreeInfo[] allTrees = rc.senseNearbyTrees(10,Team.NEUTRAL);
+        boolean clearOfTrees = (allTrees.length < 3)
+                || (allTrees.length < 10 && uc.lumberjacksCount > 0)
+                || (uc.lumberjacksCount > 1);
+        if ((clearOfTrees && uc.gardenersCount < 20 && uc.estimatedMapSize > UnitController.bigMap)
+                || (clearOfTrees && uc.gardenersCount < 10 && uc.estimatedMapSize > UnitController.smallMap)
+                || (clearOfTrees && uc.gardenersCount < 5)
+                || uc.gardenersCount < 1){
             try{
                 if(rc.canBuildRobot(RobotType.GARDENER,dir)){
                     rc.buildRobot(RobotType.GARDENER,dir);
@@ -155,17 +161,23 @@ public class Functions {
     }
 
     public static ReturnType whatToBuild(RobotController rc, UnitController uc){
+        uc.whatToBuild = 2; // default
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees(20,Team.NEUTRAL);
         if (nearbyTrees.length > 5 && uc.lumberjacksCount < 2){
             uc.whatToBuild = 5;     // If there are more than 5 trees around and less than 2 lumberjacks, build lumberjackz
         }
-        if (uc.enemyVisible || (uc.soldiersCoutn < 5 && rc.getRoundNum() < 100)){
-            uc.whatToBuild = 2;     // If we have less than 5 soldiers or we see enemies, build soldiers.
-            return ReturnType.SUCCESS;
+        else{
+            if (uc.enemyVisible || (uc.soldiersCoutn < 5 && rc.getRoundNum() < 100)){
+                uc.whatToBuild = 2;     // If we have less than 5 soldiers or we see enemies, build soldiers.
+                return ReturnType.SUCCESS;
+            }
+            else{
+                uc.whatToBuild = -1;    // No building instructions here
+            }
         }
-        uc.whatToBuild = -1;        // No building instructions here
         return ReturnType.SUCCESS;
     }
+
 
     // Gardener stuff ==================================================================
 
@@ -264,10 +276,123 @@ public class Functions {
 
                 }
             }break;
+            case LUMBERJACK:{
+                try{
+                    int channel = 5000 + (uc.unitTeamId*10);
+                    rc.broadcastInt(channel,5);
+                    rc.broadcastFloat(channel+1,rc.getLocation().x);
+                    rc.broadcastFloat(channel+2,rc.getLocation().y);
+                    Team otherTeam;
+                    if (rc.getTeam() == Team.A)
+                        otherTeam = Team.B;
+                    else
+                        otherTeam = Team.B;
+                    RobotInfo[] enemies = rc.senseNearbyRobots(20,otherTeam);
+                    rc.broadcastInt(channel+3,enemies.length);
+                }
+                catch (GameActionException e){
+
+                }
+            }break;
         }
         return ReturnType.SUCCESS;
     }
 
+    public static ReturnType buildUnit(RobotController rc, UnitController uc){
+        try{
+            int instruction = rc.readBroadcastInt(0);
+            double[] dirs = {0,Math.PI/3,2*Math.PI/3,Math.PI,4*Math.PI/3,5*Math.PI/3};
+            switch (instruction){
+                case 2:{
+                    for (double d:dirs){
+                        Direction dir = new Direction((float)d);
+                        if (rc.canBuildRobot(RobotType.SOLDIER,dir)){
+                            rc.buildRobot(RobotType.SOLDIER,dir);
+                            return ReturnType.SUCCESS;
+                        }
+                    }
+                }
+                case 3:{
+                    for (double d:dirs){
+                        Direction dir = new Direction((float)d);
+                        if (rc.canBuildRobot(RobotType.TANK,dir)){
+                            rc.buildRobot(RobotType.TANK,dir);
+                            return ReturnType.SUCCESS;
+                        }
+                    }
+                }
+                case 4:{
+                    for (double d:dirs){
+                        Direction dir = new Direction((float)d);
+                        if (rc.canBuildRobot(RobotType.SCOUT,dir)){
+                            rc.buildRobot(RobotType.SCOUT,dir);
+                            return ReturnType.SUCCESS;
+                        }
+                    }
+                }
+                case 5:{
+                    for (double d:dirs){
+                        Direction dir = new Direction((float)d);
+                        if (rc.canBuildRobot(RobotType.LUMBERJACK,dir)){
+                            rc.buildRobot(RobotType.LUMBERJACK,dir);
+                            return ReturnType.SUCCESS;
+                        }
+                    }
+                }
+                case -1:{
+
+                }
+            }
+        }
+        catch (GameActionException e){
+
+        }
+        return ReturnType.SUCCESS;
+    }
+
+
+    // Lumberjack stuff ==============================================================
+
+    public static ReturnType findNearbyTrees(RobotController rc, UnitController uc){
+        TreeInfo[] allTrees = rc.senseNearbyTrees(20,Team.NEUTRAL);
+        if (allTrees.length > 0){
+            uc.nearbyTrees = allTrees;
+            return ReturnType.SUCCESS;
+        }
+        else{
+            return ReturnType.FAIL;
+        }
+    }
+
+    public static ReturnType chopClosestTree(RobotController rc, UnitController uc){
+        /**
+         * Chops the closest tree to the lumberjack.
+         * It assumes that such a tree exists, ie that targetTree is not null.
+         * It return SUCCESS if the tree is choped down, RUNNING if the lumberjack is moving towards it, and failure otherwise.
+         */
+        TreeInfo t = uc.nearbyTrees[0];
+        if (rc.canChop(t.ID)){
+            try{
+                rc.chop(t.ID);
+                return ReturnType.SUCCESS;
+            }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
+        else{
+            if (rc.canMove(t.location)){
+                try{
+                    rc.move(t.location);
+                    return ReturnType.RUNNING;
+                }
+                catch (GameActionException e){
+                    return ReturnType.FAIL;
+                }
+            }
+        }
+        return ReturnType.RUNNING;
+    }
 
     // Helpers========================================================================
     static Direction randomDirection() {
@@ -324,6 +449,18 @@ public class Functions {
 
             case "whatToBuild":{
                 return whatToBuild(rc,uc);
+            }
+
+            case "senseTrees":{
+                return findNearbyTrees(rc,uc);
+            }
+
+            case "chop":{
+                return chopClosestTree(rc,uc);
+            }
+
+            case "buildUnit":{
+                return buildUnit(rc,uc);
             }
 
            default:{
