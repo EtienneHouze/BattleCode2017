@@ -25,4 +25,10 @@ public class SoldierController extends UnitController {
 
         }
     }
+
+    @Override
+    public void run(){
+        super.run();
+        Functions.sendToArchon(rc,this);
+    }
 }

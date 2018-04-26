@@ -33,7 +33,8 @@ public abstract class UnitController {
     int lumberjacksCount;
     int scoutsCount;
     int tanksCount;
-    boolean enemyVisible;
+    int enemiesVisible;
+
     MapLocation whereToGo;
 
         // Instruction sent to gardeners to ask them to build specific units.
@@ -66,6 +67,7 @@ public abstract class UnitController {
 
     public void run(){
         tree.tickDown(rc,this);
+        if 
     }
 
 }

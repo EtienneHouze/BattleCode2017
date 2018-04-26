@@ -106,6 +106,7 @@ public class Functions {
         uc.soldiersCoutn = 0;
         uc.gardenersCount = 0;
         uc.scoutsCount = 0;
+        uc.enemiesVisible = 0;
         int mostEnemies = 2;
         int mostEnemiesInd = -1;
         try {
@@ -134,6 +135,7 @@ public class Functions {
                 if (rc.readBroadcastInt(5000 + (10*i) + 3) > mostEnemies){
                     mostEnemies = rc.readBroadcastInt(5000 + (10*i)+3);
                     mostEnemiesInd = i;
+                    uc.enemiesVisible = mostEnemies;
                 }
             }
             if (mostEnemiesInd > -1){
@@ -201,11 +203,14 @@ public class Functions {
     public static ReturnType whatToBuild(RobotController rc, UnitController uc){
         uc.whatToBuild = 2; // default
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees(20,Team.NEUTRAL);
+        if (uc.enemiesVisible  > 0 && uc.soldiersCoutn < uc.enemiesVisible +5 && rc.getRoundNum() > 100){
+            uc.whatToBuild = 2;
+        }
         if (nearbyTrees.length > 5 && uc.lumberjacksCount < 2){
             uc.whatToBuild = 5;     // If there are more than 5 trees around and less than 2 lumberjacks, build lumberjackz
         }
         else{
-            if (uc.enemyVisible || (uc.soldiersCoutn < 10 && rc.getRoundNum() > 100)){
+            if ((uc.soldiersCoutn < 10 && rc.getRoundNum() > 100)){
                 uc.whatToBuild = 2;     // If we have less than 5 soldiers or we see enemies, build soldiers.
                 return ReturnType.SUCCESS;
             }
