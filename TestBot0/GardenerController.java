@@ -32,6 +32,7 @@ public class GardenerController extends UnitController {
     @Override
     public void run() {
         super.run();
-        Functions.sendToArchon(this.rc,this);
+        if (rc.getHealth() > 0)
+            Functions.sendToArchon(rc,this);
     }
 }

@@ -111,7 +111,19 @@ public class Functions {
         int mostEnemiesInd = -1;
         try {
             for (int i = 0; i < 500; i ++){ // We iterate throught every possible unit channel and read what they say.
-                int unitType = rc.readBroadcast(5000 + (10*i));
+                int unitType;
+                int timeStamp = rc.readBroadcastInt(5000 + (10*i) +9);
+                if (timeStamp != rc.getRoundNum() -1){
+                    unitType = 0;
+                    rc.broadcastInt(5000 + (10*i),0);
+                    rc.broadcastInt(5000 + (10*i)+1,0);
+                    rc.broadcastInt(5000 + (10*i)+2,0);
+                    rc.broadcastInt(5000 + (10*i)+3,0);
+
+                }
+                else{
+                    unitType = rc.readBroadcast(5000 + (10*i));
+                }
                 switch (unitType){
                     case 1:{
                         uc.gardenersCount ++;
@@ -188,7 +200,8 @@ public class Functions {
     }
 
     public static ReturnType buyVP(RobotController rc, UnitController uc){
-        if (rc.getTeamBullets() > 150 && uc.soldiersCoutn < 10){
+        if ((rc.getTeamBullets() > 150 && uc.soldiersCoutn > 10)
+                || rc.getTeamBullets() > 200){
             try{
                 rc.donate(20);
                 return ReturnType.SUCCESS;
@@ -235,37 +248,44 @@ public class Functions {
                 tooClose = true;
             }
         }*/
-        RobotInfo[] nearby = rc.senseNearbyRobots(6,rc.getTeam());
-        Direction oppositeDir;
+        MapLocation[] nearby = rc.senseBroadcastingRobotLocations();
+        Direction oppositeDir = randomDirection();
         if (nearby.length > 0){
-            tooClose = true;
-            oppositeDir = nearby[0].getLocation().directionTo(rc.getLocation());
-        }
-        else{
-            oppositeDir = randomDirection();
-        }
-            if (rc.senseNearbyTrees((float) 2.0, rc.getTeam()).length == 0){
-            try{
-                double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
-                for (int i = 1; i < 5; i ++){
-                    Direction dir = new Direction((float) directions[i]);
-                    if ((tooClose || !(rc.canPlantTree(dir)))){
-                            Direction randDir = randomDirection();
-                            if (rc.canMove(oppositeDir)){
-                                rc.move(oppositeDir);
-                            }
-                            else{
-                                if (rc.canMove(randDir))
-                                    rc.move(randDir);
-                            }
-                        return ReturnType.RUNNING; // In this case, the agent is still trying to find a good spot
-                        }
-                    }
-               }
-                catch (GameActionException e){
-                    return ReturnType.FAIL;
+            float closest = 1000;
+            MapLocation closestLoc = null;
+            for (MapLocation loc : nearby){
+                if (loc.distanceTo(rc.getLocation()) < closest && loc.distanceTo(rc.getLocation()) > 1.01){
+                    closestLoc = loc;
+                    closest = loc.distanceTo(rc.getLocation());
                 }
             }
+            if (closest < 8){
+                tooClose = true;
+                oppositeDir = closestLoc.directionTo(rc.getLocation());
+            }
+        }
+        if (rc.senseNearbyTrees((float) 2.0, rc.getTeam()).length == 0){
+        try{
+            double[] directions = new double[]{0, Math.PI / 3, 2 * Math.PI / 3, 4 * Math.PI / 3, 5 * Math.PI / 3};
+            for (int i = 1; i < 5; i ++){
+                Direction dir = new Direction((float) directions[i]);
+                if ((tooClose || !(rc.canPlantTree(dir)))){
+                        Direction randDir = randomDirection();
+                        if (rc.canMove(oppositeDir)){
+                            rc.move(oppositeDir);
+                        }
+                        else{
+                            if (rc.canMove(randDir))
+                                rc.move(randDir);
+                        }
+                    return ReturnType.RUNNING; // In this case, the agent is still trying to find a good spot
+                    }
+                }
+           }
+            catch (GameActionException e){
+                return ReturnType.FAIL;
+            }
+        }
         uc.isInGoodSpot = true;
         return ReturnType.SUCCESS; // In this case, it is in a good spot
      }
@@ -367,6 +387,8 @@ public class Functions {
                 otherTeam = Team.B;
             RobotInfo[] enemies = rc.senseNearbyRobots(20,otherTeam);
             rc.broadcastInt(channel+3,enemies.length);
+            int timeStamp = rc.getRoundNum();
+            rc.broadcastInt(channel+9,timeStamp);
         }
         catch (GameActionException e){
 

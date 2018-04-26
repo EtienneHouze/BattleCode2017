@@ -29,6 +29,7 @@ public class SoldierController extends UnitController {
     @Override
     public void run(){
         super.run();
-        Functions.sendToArchon(rc,this);
+        if (rc.getHealth() > 0)
+            Functions.sendToArchon(rc,this);
     }
 }

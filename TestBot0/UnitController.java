@@ -67,7 +67,6 @@ public abstract class UnitController {
 
     public void run(){
         tree.tickDown(rc,this);
-        if 
     }
 
 }
