@@ -1,5 +1,6 @@
 package TestBot0;
 
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.TreeInfo;
 
@@ -33,6 +34,7 @@ public abstract class UnitController {
     int scoutsCount;
     int tanksCount;
     boolean enemyVisible;
+    MapLocation whereToGo;
 
         // Instruction sent to gardeners to ask them to build specific units.
         // The following encoding is used:

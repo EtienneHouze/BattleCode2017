@@ -106,8 +106,10 @@ public class Functions {
         uc.soldiersCoutn = 0;
         uc.gardenersCount = 0;
         uc.scoutsCount = 0;
-        for (int i = 0; i < 500; i ++){ // We iterate throught every possible unit channel and read what they say.
-            try {
+        int mostEnemies = 2;
+        int mostEnemiesInd = -1;
+        try {
+            for (int i = 0; i < 500; i ++){ // We iterate throught every possible unit channel and read what they say.
                 int unitType = rc.readBroadcast(5000 + (10*i));
                 switch (unitType){
                     case 1:{
@@ -129,10 +131,20 @@ public class Functions {
 
                     }break;
                 }
+                if (rc.readBroadcastInt(5000 + (10*i) + 3) > mostEnemies){
+                    mostEnemies = rc.readBroadcastInt(5000 + (10*i)+3);
+                    mostEnemiesInd = i;
+                }
             }
-            catch(GameActionException e){
-                return ReturnType.FAIL;
+            if (mostEnemiesInd > -1){
+                uc.whereToGo = new MapLocation(rc.readBroadcastFloat(5000 + (10*mostEnemiesInd)+1),rc.readBroadcastFloat(5000 + (10*mostEnemiesInd)+2));
             }
+            else {
+                uc.whereToGo = new MapLocation(-1,-1);
+            }
+        }
+        catch(GameActionException e){
+            return ReturnType.FAIL;
         }
         return ReturnType.SUCCESS;
     }
@@ -140,6 +152,8 @@ public class Functions {
     public static ReturnType broadcastAll(RobotController rc, UnitController uc){
         try{
             rc.broadcastInt(0,uc.whatToBuild);
+            rc.broadcastFloat(200,uc.whereToGo.x);
+            rc.broadcastFloat(201,uc.whereToGo.y);
         }
         catch(GameActionException e){
 
@@ -473,6 +487,27 @@ public class Functions {
         }catch (GameActionException e){
                 return ReturnType.FAIL;                
                 }
+        return ReturnType.SUCCESS;
+    }
+
+    public static ReturnType moveToBlood(RobotController rc, UnitController uc){
+        try{
+            MapLocation where = new MapLocation(rc.readBroadcastFloat(200),rc.readBroadcastFloat(201));
+            if (where.x > -1 && where.y > -1){
+                if (rc.canMove(where)){
+                    rc.move(where);
+                    return ReturnType.SUCCESS;
+                }
+            }
+            Direction dir = randomDirection();
+            if (rc.canMove(dir)){
+                rc.move(dir);
+                return ReturnType.SUCCESS;
+            }
+        }
+        catch (GameActionException e){
+            return ReturnType.FAIL;
+        }
         return ReturnType.FAIL;
     }
 
@@ -551,6 +586,10 @@ public class Functions {
 
             case "shoot":{
                 return shoot(rc);
+            }
+
+            case "moveToBlood":{
+                return moveToBlood(rc,uc);
             }
 
            default:{

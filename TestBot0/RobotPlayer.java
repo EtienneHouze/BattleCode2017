@@ -32,7 +32,7 @@ public class RobotPlayer {
 
     static String soldierText = "0 seq 1 2\n" +
             "1 leaf shoot\n" +
-            "2 leaf move";
+            "2 leaf moveToBlood";
 
     static String tankText = "0 leaf move";
 
